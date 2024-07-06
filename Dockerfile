@@ -1,36 +1,31 @@
-#
 # Elasticsearch Dockerfile
-#
-# https://github.com/dockerfile/elasticsearch
-#
+# Base image
+FROM openjdk:8-jre
 
-# Pull base image.
-FROM dockerfile/java:oracle-java8
+# Environment variables
+ENV ES_VERSION=1.5.0
+ENV ES_PKG_NAME elasticsearch-$ES_VERSION
 
-ENV ES_PKG_NAME elasticsearch-1.5.0
+# Install necessary tools
+RUN apt-get update && apt-get install -y wget tar
 
-# Install Elasticsearch.
+# Install Elasticsearch
 RUN \
-  cd / && \
-  wget https://download.elasticsearch.org/elasticsearch/elasticsearch/$ES_PKG_NAME.tar.gz && \
-  tar xvzf $ES_PKG_NAME.tar.gz && \
-  rm -f $ES_PKG_NAME.tar.gz && \
-  mv /$ES_PKG_NAME /elasticsearch
+  wget -qO - https://artifacts.elastic.co/downloads/elasticsearch/$ES_PKG_NAME.tar.gz | tar xz && \
+  mv $ES_PKG_NAME /elasticsearch
 
-# Define mountable directories.
+# Define mountable directories
 VOLUME ["/data"]
 
 # Mount elasticsearch.yml config
 ADD config/elasticsearch.yml /elasticsearch/config/elasticsearch.yml
 
-# Define working directory.
-WORKDIR /data
+# Define working directory
+WORKDIR /elasticsearch
 
-# Define default command.
-CMD ["/elasticsearch/bin/elasticsearch"]
+# Expose ports
+EXPOSE 9200 9300
 
-# Expose ports.
-#   - 9200: HTTP
-#   - 9300: transport
-EXPOSE 9200
-EXPOSE 9300
+# Start Elasticsearch
+CMD ["./bin/elasticsearch"]
+
